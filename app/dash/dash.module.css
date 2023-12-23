@@ -1,0 +1,47 @@
+
+.shadowAnimate:hover {
+    animation-name: shadowIn;
+    animation-duration: 5s;
+}
+
+
+ #__next {
+  height: 100%;
+}
+
+
+@keyframes shadowIn {
+    from {box-shadow: none}
+    to {box-shadow: forestgreen}
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.gradient {
+  --size: 250px;
+  --speed: 50s;
+  --easing: cubic-bezier(0.8, 0.2, 0.2, 0.8);
+
+  width: var(--size);
+  height: var(--size);
+  filter: blur(calc(var(--size) / 5));
+  background-image: linear-gradient(hsl(158, 82, 57, 85%), hsl(252, 82, 57));
+  animation: rotate var(--speed) var(--easing) alternate infinite;
+  border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+}
+
+
+  .gradient {
+    --size: 500px;
+  }
+
+
+
+

@@ -5,8 +5,32 @@
 @tailwind utilities;
 
 body{
-    background: black;
+    @apply scrollbar-thin scrollbar-thumb-gray-800/80 hover:scrollbar-thumb-gray-900/80  scrollbar-track-gray-600;
+    background-color: #000000;
+    opacity: 1;
+    background-image:  radial-gradient(rgba(75, 178, 7, 0.45) 1px, transparent 1px), radial-gradient(rgba(4, 113, 9, 0.57) 1px, rgba(0, 0, 0, 0) 1px);
+
+    background-size: 80px 80px;
+    background-position: 0 0,40px 40px;
     color: aliceblue;
+      margin: 0;
+      padding: 0;
+}
+
+html, body, #__next {
+  height: 100%;
+}
+
+main{
+    @apply h-max
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    list-style: none;
 }
 
 .shadowAnimate:hover {
@@ -18,3 +42,4 @@ body{
     from {box-shadow: none}
     to {box-shadow: forestgreen}
 }
+
