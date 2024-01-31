@@ -121,7 +121,6 @@ export default function Player({player,setPlayerOpen,playerOverride,playerOpen,p
       </Transition>
       {/*)}*/}
     </div>
-  )
     </>
   )}
 

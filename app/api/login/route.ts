@@ -2,9 +2,23 @@ import { NextResponse } from "next/server";
 import {redirect} from "next/navigation";
 import * as querystring from "querystring";
 
-const client_id = "REDACTED_CONFIGURATION";
-const client_secret = "REDACTED_CONFIGURATION"
+const client_id = process.env.SP_CLIENT_ID
+const client_secret = process.env.SP_CLIENT_SECRET
 const url = "https://accounts.spotify.com/authorize?"
+
+import { createClient } from '@supabase/supabase-js'
+
+async function signInWithSpotify() {
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'spotify',
+  })
+}
+
+export const supabase = createClient(
+  // @ts-ignore
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+)
 
 export async function GET(request:any) {
   let state = (Math.random() * 10000) + 1000

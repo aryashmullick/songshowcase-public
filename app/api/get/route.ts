@@ -1,76 +1,130 @@
-import {redirect} from "next/navigation";
+import { redirect } from "next/navigation";
 import * as querystring from "querystring";
-import { useSearchParams } from 'next/navigation'
-import { NextRequest,NextResponse } from "next/server";
-import { cookies } from 'next/headers'
+import { useSearchParams } from "next/navigation";
+import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import connectDB from "@/app/lib/connectDB";
+import UserInfo from "@/Models/UserInfo";
+import UserSession from "@/Models/UserSession";
 
+const client_id = process.env.SP_CLIENT_ID
+const client_secret = process.env.SP_CLIENT_SECRET
+const url = "https://accounts.spotify.com/api/token";
 
-
-const client_id = "REDACTED_CONFIGURATION";
-const client_secret = "REDACTED_CONFIGURATION"
-const url = "https://accounts.spotify.com/api/token"
-
-async function getData(code:string | null){
-  return await fetch(url,
-    {
-        method: "POST",
-        // @ts-ignore
-        body: querystring.stringify({
-          code: code,
-          redirect_uri: "http://localhost:3000/api/callback",
-          grant_type: 'authorization_code',
-        }),
-        headers: {
-          'content-type': 'application/x-www-form-urlencoded',
-           // @ts-ignore
-          'Authorization': 'Basic ' + (new Buffer.from(client_id + ':' + client_secret).toString('base64'))
-        },
-    })
-      .then((response) => {
-        return response.json()
-      })
-}
-
-async function getInfo(code: string|null){
-  return await fetch('https://api.spotify.com/v1/me', {
+async function getInfo(code: string | null) {
+  return await fetch("https://api.spotify.com/v1/me", {
     headers: {
-      Authorization: 'Bearer ' + code
+      Authorization: "Bearer " + code,
     },
-  })
-      .then((response) => {
-        return response.json()
-      })
+  }).then((response) => {
+    if(response.status===401){
+      return 401
+    }
+    return response.json();
+  });
 }
 
 
+async function getTopArtists(code: string|null,time_range:string,limit:string){
+  return await fetch(`https://api.spotify.com/v1/me/top/artists/?limit=${limit}&time_range=${time_range}`, {
+  headers: {
+    Authorization: 'Bearer ' + code
+  },
+})
+    .then((response) => {
+      return response.json()
+    })
+}
+
+async function getTopTracks(code: string|null,time_range:string,limit:string|number){
+  return await fetch(`https://api.spotify.com/v1/me/top/tracks/?limit=${limit}&time_range=${time_range}`, {
+  headers: {
+    Authorization: 'Bearer ' + code
+  },
+})
+    .then((response) => {
+      return response.json()
+    })
+}
+
+async function getCurrentTrack(code: string|null){
+  return await fetch(`https://api.spotify.com/v1/me/player/currently-playing`, {
+  headers: {
+    Authorization: 'Bearer ' + code
+  },
+})
+    .then((response) => {
+      return response.json()
+    })
+}
 
 
 export async function GET(req: NextRequest, res: NextResponse) {
-    // @ts-ignore
-    const { searchParams } = new URL(req.url);
+  await connectDB()
+  // @ts-ignore
+  const { searchParams } = new URL(req.url);
+  let get = searchParams.get("get");
+  let time_range = searchParams.get("time_range") || "short_term";
+  let limit = searchParams.get("limit") || "10";
 
-    const cookie = cookies();
-    let info:any = cookie.get("info") || undefined;
-    let topArtists:any = cookie.get("top_artists") || undefined;
-    console.log(topArtists)
-    let topTracks:any = cookie.get("top_tracks") || undefined;
-    info = JSON.parse(JSON.parse(info))
-    topArtists = JSON.parse(JSON.parse(topArtists))
-    topTracks = JSON.parse(JSON.parse(topTracks))
-    if (!info) {
-        return NextResponse.json({error: "Bad Request"}, {status: 400});
+  if (!get){
+    return NextResponse.json({ error: "Nothing specified" }, { status: 400 });
+  }
+
+  const cookie = cookies();
+  let session: any = cookie.get("session_id") || undefined;
+  let id:any = cookie.get("sp_id") || undefined
+
+  if (!session || !id) {
+    return NextResponse.json({ error: "Could not verify session" }, { status: 400 });
+  }
+
+  let user:any = await UserSession.findOne({
+    session_id: session.value,
+    sp_id: id.value,
+  },"sp_access_token sp_refresh_token updatedAt").exec();
+
+  let ONE_HOUR = 60 * 60 * 1000
+  let updateTime = new Date(user["updatedAt"])
+  let now = new Date()
+
+  //@ts-ignore
+  if((now - updateTime) > ONE_HOUR){
+    const refresh = await fetch('http://localhost:3000/api/refresh/', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+         Cookie: cookies().toString(),
+      },
+    });
+    console.log(refresh.status)
+    if(refresh.status!==200){
+      return NextResponse.json({message:refresh.statusText},{status:refresh.status})
+    }else{
+      user = await UserSession.findOne({
+        session_id: session.value,
+        sp_id: id.value,
+      },"sp_access_token sp_refresh_token").exec();
     }
-    //  else {
-    //     return NextResponse.json(JSON.parse(info["value"]));
-    // }
+  }
 
-    let struct = {
-        info,
-        topTracks,
-        topArtists
-    }
-    console.log(struct)
 
-     return NextResponse.json(struct);
+  switch (get) {
+    case "info":
+      let info = await getInfo(user["sp_access_token"])
+      return NextResponse.json(info)
+    case "topArtists":
+      let topArtists= await getTopArtists(user["sp_access_token"],time_range,limit)
+      return NextResponse.json(topArtists)
+    case "topTracks":
+      let topTracks = await getTopTracks(user["sp_access_token"],time_range,limit)
+      return NextResponse.json(topTracks)
+    case "player":
+      let player = await getCurrentTrack(user["sp_access_token"])
+      return NextResponse.json(player)
+    default:
+      return NextResponse.json({ error: "Invalid specifications" }, { status: 400 });
+  }
 
+  return NextResponse.json({message:"Invalid request"},{status:400});
 }
