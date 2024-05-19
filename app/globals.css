@@ -17,6 +17,30 @@ body{
       padding: 0;
 }
 
+@layer components {
+    input[type=range] {
+      @apply appearance-none bg-transparent;
+    }
+
+    input[type=range]::-ms-thumb,
+    input[type=range]::-webkit-slider-thumb
+    {
+        @apply text-green-400
+    }
+  
+    input[type=range]::-webkit-slider-runnable-track {
+      @apply  bg-gray-600/25 rounded-full;
+    }
+  
+    input[type=range]::-moz-range-track {
+      @apply bg-gray-200 rounded-full;
+    }
+  
+    input[type=range]::-ms-track {
+      @apply bg-gray-200 rounded-full;
+    }
+}
+
 html, body, #__next {
   height: 100%;
 }
@@ -42,4 +66,3 @@ main{
     from {box-shadow: none}
     to {box-shadow: forestgreen}
 }
-
