@@ -8,9 +8,11 @@ export default function Player({player,setPlayerOpen,playerOverride,playerOpen,p
   return (
     <>
     <div
-      className={`grid left-1 outline outline-[0.5px] hover:outline-2 grid-flow-col  fixed bottom-1 rounded-full bg-neutral-950 ${
-        player["is_playing"] ? "outline-green-900/70" : "outline-red-900/70"
-      } `}
+      className={`fixed bottom-4 left-4 z-50 flex items-center gap-3 p-1.5  rounded-full bg-neutral-950/85 backdrop-blur-xl border transition-all duration-300 shadow-2xl cursor-pointer select-none ${
+        player["is_playing"]
+          ? "border-green-500/40 shadow-green-500/10 hover:border-green-500/70"
+          : "border-neutral-800 hover:border-neutral-700"
+      }`}
       onMouseEnter={() => {
         setPlayerOpen(true);
       }}
@@ -21,107 +23,74 @@ export default function Player({player,setPlayerOpen,playerOverride,playerOpen,p
         setPlayerOpen(!playerOpen);
       }}
     >
-      <div
-        className={`cursor-pointer flex h-12 w-12 justify-center items-center text-center`}
-      >
+      <div className="relative flex h-11 w-11 justify-center items-center shrink-0">
         <CircularProgressbarWithChildren
           value={player!==undefined && !playerOverride && playerDurationPercent}
           styles={buildStyles({
-            trailColor: "rgba(46,44,44,0.13)",
+            trailColor: "rgba(255,255,255,0.06)",
             pathColor: `${
               player && !playerOverride && player["is_playing"]
-                ? `rgb(34, 111, 13)`
-                : `rgba(185,22,41,0.63)`
+                ? `rgb(34, 197, 94)`
+                : `rgba(239, 68, 68, 0.7)`
             }`,
           })}
         >
-          <Image
-            src={player!==undefined &&
-              player["item"]["album"]["images"][0]["url"]
-            }
-            alt={"Song pic"}
-            width={64}
-            height={64}
-            className={"rounded-full z-40 p-1"}
-          />
+          {player?.item?.album?.images?.[0]?.url && (
+            <Image
+              src={player["item"]["album"]["images"][0]["url"]}
+              alt={"Song pic"}
+              width={40}
+              height={40}
+              className={"rounded-full z-40 p-0.5 object-cover"}
+            />
+          )}
           <Transition
             show={!player["is_playing"]}
-            enter="transition-all duration-500"
+            enter="transition-all duration-300"
             enterFrom="scale-105 opacity-0"
             enterTo="scale-100 opacity-100"
-            leave={"transition-all duration-500"}
+            leave={"transition-all duration-200"}
             leaveFrom="scale-90 opacity-100"
             leaveTo="scale-0 opacity-0"
-            className={"absolute z-50 p-1 rounded-2xl font-bold "}
+            className={"absolute z-50 p-1 rounded-full bg-black/60 text-white"}
           >
-            <i
-              className={
-                "bi bg-neutral-800/70 rounded-full text-xl bi-pause"
-              }
-            ></i>
+            <i className={"bi bi-pause-fill text-sm"}></i>
           </Transition>
         </CircularProgressbarWithChildren>
-
-        {/*//   <div*/}
-        {/*//     className={`relative text-center  w-8 rounded-full justify-center place-items-center items-center flex border bg-green-500`}*/}
-        {/*//   >*/}
-        {/*//     <div*/}
-        {/*//       onClick={() => {*/}
-        {/*//         setPlayerOpen(!playerOpen);*/}
-        {/*//       }}*/}
-        {/*//       className={*/}
-        {/*//         "w-8 h-8 rounded-full z-10 flex bg-neutral-900/40 items-center justify-center place-items-center "*/}
-        {/*//       }*/}
-        {/*//     >*/}
-        {/*//       <span className={"text-[10px]"}>*/}
-        {/*//         <i className="bi bi-chevron-double-up"></i>*/}
-        {/*//       </span>*/}
-        {/*//     </div>*/}
-        {/*//   </div>*/}
       </div>
-      {/*{player!==undefined && playerOpen && (*/}
+
       <Transition
         show={playerOpen}
-        enter="transition-all duration-1000"
-        enterFrom="scale-105 opacity-0"
-        enterTo="scale-100 opacity-100"
-        leave={"transition-all duration-300"}
-        leaveFrom="scale-50 opacity-100"
-        leaveTo="scale-0 opacity-0"
-        className={`select-none place-items-center grid grid-flow-col gap-1 p-2 rounded-md justify-center text-center text-md items-center `}
+        enter="transition-all duration-300"
+        enterFrom="max-w-0 opacity-0"
+        enterTo="max-w-[320px] opacity-100"
+        leave={"transition-all duration-200"}
+        leaveFrom="max-w-[320px] opacity-100"
+        leaveTo="max-w-0 opacity-0"
+        className="overflow-hidden flex items-center gap-2 text-sm whitespace-nowrap"
       >
-        {/*<div>*/}
-        {/*  <span>{player["item"]["name"]}</span>*/}
-        {/*)}{" "}*/}
-        <span className={"font-semibold"}>
+        <span className="font-semibold text-neutral-100">
           {player["item"]["name"].length > 20 ? (
-            <div className={"w-[30vh]"}>
-              <Marquee
-                pauseOnHover={true}
-                delay={1}
-                className={"rounded-full"}
-              >
-                {player["item"]["name"]}&nbsp;
+            <div className="w-[180px]">
+              <Marquee pauseOnHover={true} delay={1} className="rounded-full">
+                {player["item"]["name"]}&nbsp;&bull;&nbsp;
               </Marquee>
             </div>
           ) : (
-            <div>{player!==undefined && !playerOverride && player["item"]["name"]}</div>
+            <span>{player!==undefined && !playerOverride && player["item"]["name"]}</span>
           )}
-        </span>{" "}
+        </span>
         {player!==undefined && !playerOverride && player["item"]["explicit"] && (
-          <i className="bi bi-explicit-fill text-sm"></i>
-        )}{" "}
-        &#183;{" "}
-        <span className={"text-sm"}>
+          <span className="text-[10px] bg-neutral-800 border border-neutral-700 text-neutral-400 font-bold px-1 rounded">E</span>
+        )}
+        <span className="text-neutral-500">&bull;</span>
+        <span className="text-xs text-neutral-400 truncate">
           {player!==undefined &&
             !playerOverride &&
             player["item"]["artists"][0]["name"]}
         </span>
-        {/*</div>*/}
       </Transition>
-      {/*)}*/}
     </div>
     </>
-  )}
-
-
+  );
+}

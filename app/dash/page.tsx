@@ -142,60 +142,49 @@ export default function Home() {
 
   return (
     <main className="overflow-hidden">
-      <div className={""}>
-        <div className={"select-none "}>
-          <div className="">
-            <div
-              className={
-                "top-[4vh] relative grid grid-flow-col place-items-center justify-center items-center"
-              }
-            >
-              <div className={"text-center text-2xl"}>
+      <div className="select-none">
+        <div className="pt-6 pb-2 px-4 flex items-center justify-between max-w-6xl mx-auto">
+              <div className="flex items-center gap-3">
                 {info ? (
-                  <Image
-                    src={info["images"][0]["url"]}
-                    alt="profile pic"
-                    className={"rounded-full"}
-                    width={30}
-                    height={30}
-                  />
-                ) : (
-                  <div className="flex animate-pulse">
-                    <div className="flex-shrink-0">
-                      <span className="h-10 w-16 block bg-gray-200 rounded-md dark:bg-gray-700"></span>
-                    </div>
+                  <div className="relative w-11 h-11 rounded-full p-0.5 bg-gradient-to-tr from-green-500 to-emerald-400 shadow-md shadow-green-500/20">
+                    <Image
+                      src={info["images"][0]["url"]}
+                      alt="profile pic"
+                      className="rounded-full object-cover w-full h-full"
+                      width={40}
+                      height={40}
+                    />
                   </div>
+                ) : (
+                  <div className="w-11 h-11 rounded-full bg-neutral-800 animate-pulse" />
                 )}
+                <div>
+                  <div className="text-xs text-neutral-400 font-medium">Welcome back</div>
+                  {info && (
+                    <h2 className="text-xl font-bold text-neutral-100">
+                      {info["display_name"]}
+                    </h2>
+                  )}
+                </div>
               </div>
-              <div className={" p-1 text-2xl grid  "}>
-                {info ? (
-                  <span>
-                    Hello{" "}
-                    <span className={"font-bold"}>{info["display_name"]}</span>
-                  </span>
-                ) : null}
-              </div>
-              {info && !settings && (
+
+              {info && (
                 <button
                   onClick={() => {
                     setSettings(!settings);
                   }}
-                  className={"text-md text-gray-300/70"}
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl glass-card glass-card-hover text-sm font-medium text-neutral-300 hover:text-green-400 transition-colors"
                 >
-                  <i className={"bi bi-gear-wide-connected"}></i>
+                  <i className="bi bi-gear-wide-connected text-base"></i>
+                  <span className="hidden sm:inline">Settings</span>
                 </button>
               )}
             </div>
-            <br />
-            {/*<div*/}
-            {/*  className={*/}
-            {/*    // "justify-center grid items-center w-screen place-items-center text-center  z-[100] relative"*/}
-            {/*  }*/}
-            {/*>*/}
+
             <Transition appear show={settings} as={Fragment}>
               <Dialog
                 as="div"
-                className="relative z-10 "
+                className="relative z-50"
                 onClose={() => {
                   setSettings(false);
                 }}
@@ -209,11 +198,11 @@ export default function Home() {
                   leaveFrom="opacity-100"
                   leaveTo="opacity-0"
                 >
-                  <div className="fixed inset-0 bg-black/60" />
+                  <div className="fixed inset-0 bg-black/75 backdrop-blur-sm" />
                 </Transition.Child>
 
                 <div className="fixed inset-0 overflow-y-auto">
-                  <div className="flex min-h-full  items-center justify-center p-4 text-center">
+                  <div className="flex min-h-full items-center justify-center p-4 text-center">
                     <Transition.Child
                       as={Fragment}
                       enter="ease-out duration-300"
@@ -223,120 +212,96 @@ export default function Home() {
                       leaveFrom="opacity-100 scale-100"
                       leaveTo="opacity-0 scale-95"
                     >
-                      <Dialog.Panel className="w-screen max-w-md transform overflow-hidden bg-neutral-950 outline outline-green-600 rounded-2xl  p-6 text-left align-middle shadow-xl transition-all">
-                        <Dialog.Title
-                          as="h1"
-                          className="text-xl font-medium leading-6 text-gray-300"
-                        >
-                          Settings
-                        </Dialog.Title>
-                        {info && (
-                          <button
-                            className={
-                              "text-red-500 text-[10px] p-[2px] transition-transform hover:scale-105 rounded-sm hover:bg-red-500 hover:text-white outline-[0.5px] outline outline-red-500"
-                            }
+                      <Dialog.Panel className="w-full max-w-md transform overflow-hidden  bg-neutral-900/90 rounded-3xl p-6 text-left align-middle shadow-2xl border border-white/10 transition-all">
+                        <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-5">
+                          <Dialog.Title
+                            as="h3"
+                            className="text-lg font-bold text-neutral-100 flex items-center gap-2"
                           >
-                            Logout
-                          </button>
-                        )}
-                        <div className={"grid grid-flow-row gap-4 select-none"}>
-                          <table className={"[&_td]:p-2"}>
-                            {info && (
-                              <tr>
-                                <td>
-                                  <div className={"text-gray-400"}>
-                                    Time Period
-                                  </div>
-                                </td>
-                                <td>
-                                  <select
-                                    id={"top-item-select"}
-                                    className="border outline-green-900 outline focus:outline-dashed  text-sm rounded-lg block w-full p-2.5 bg-neutral-950 border-gray-600 placeholder-gray-400 text-white "
-                                    value={term}
-                                    onChange={(event) => {
-                                      setTerm(event.target.value);
-                                    }}
-                                  >
-                                    <option value={"short_term"}>
-                                      4 weeks
-                                    </option>
-                                    <option value="medium_term">
-                                      6 months
-                                    </option>
-                                    <option value="long_term">
-                                      Several years
-                                    </option>
-                                  </select>
-                                </td>
-                              </tr>
-                            )}
-
-                            {player && (
-                              <tr>
-                                <td>
-                                  <div className={"text-gray-400"}>
-                                    Show player?
-                                  </div>
-                                </td>
-                                <td>
-                                  <button
-                                    id={"top-item-select"}
-                                    className={`border ${
-                                      !playerOverride
-                                        ? "outline-green-900"
-                                        : "outline-red-900"
-                                    } outline hover:outline-dashed text-sm rounded-lg block w-full p-1 bg-neutral-950 border-gray-600 placeholder-gray-400 text-white `}
-                                    onClick={() => {
-                                      setPlayerOverride(!playerOverride);
-                                    }}
-                                  >
-                                    {!playerOverride ? "Yes" : "No"}
-                                  </button>
-                                </td>
-                              </tr>
-                            )}
-
-                            {(topTracks || topArtists) && (
-                              <tr>
-                                <td>
-                                  <label className={" text-gray-300/70"}>
-                                    Number of top artists:{" "}
-                                    <b className="text-green-500">
-                                      {notFinalLimit}
-                                    </b>
-                                  </label>
-                                </td>
-                                <td>
-                                  <div>
-                                    <input
-                                      type="range"
-                                      min="5"
-                                      max="10"
-                                      value={notFinalLimit}
-                                      onChange={(e) => {
-                                        setNotFinalLimit(e.target.value);
-                                      }}
-                                      onMouseUp={() => {
-                                        setTopLimit(notFinalLimit);
-                                      }}
-                                      onTouchEnd={() => {
-                                        setTopLimit(notFinalLimit);
-                                      }}
-                                      className={"mt-2 w-full"}
-                                    />
-                                  </div>
-                                </td>
-                              </tr>
-                            )}
-                          </table>
+                            Settings
+                          </Dialog.Title>
+                          {info && (
+                            <Link
+                              href="/api/login"
+                              className="text-xs px-2.5 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 font-medium transition-colors"
+                            >
+                              Logout
+                            </Link>
+                          )}
                         </div>
 
-                        <div></div>
-                        <div></div>
-                        <div className="mt-4">
+                        <div className="space-y-4 text-sm">
+                          {info && (
+                            <div className="flex items-center justify-between gap-4">
+                              <span className="text-neutral-400 font-medium">Time Period</span>
+                              <select
+                                id="top-item-select"
+                                className="bg-neutral-800/90 border border-white/10 text-neutral-200 text-xs rounded-xl p-2.5 focus:border-green-500 focus:outline-none cursor-pointer"
+                                value={term}
+                                onChange={(event) => {
+                                  setTerm(event.target.value);
+                                }}
+                              >
+                                <option value="short_term">4 weeks (Recent)</option>
+                                <option value="medium_term">6 months</option>
+                                <option value="long_term">Several years</option>
+                              </select>
+                            </div>
+                          )}
+
+                          {player && (
+                            <div className="flex items-center justify-between gap-4">
+                              <span className="text-neutral-400 font-medium">Show Player</span>
+                              <button
+                                id="top-item-select"
+                                className={`px-4 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
+                                  !playerOverride
+                                    ? "bg-green-500/20 border-green-500/30 text-green-400"
+                                    : "bg-red-500/20 border-red-500/30 text-red-400"
+                                }`}
+                                onClick={() => {
+                                  setPlayerOverride(!playerOverride);
+                                }}
+                              >
+                                {!playerOverride ? "Enabled" : "Disabled"}
+                              </button>
+                            </div>
+                          )}
+
+                          {(topTracks || topArtists) && (
+                            <div className="space-y-2 pt-2 border-t border-white/5">
+                              <div className="flex items-center justify-between">
+                                <label className="text-neutral-400 font-medium">
+                                  Items to Display
+                                </label>
+                                <span className="font-bold text-green-400 bg-green-500/10 px-2 py-0.5 rounded-lg border border-green-500/20 text-xs">
+                                  {notFinalLimit} items
+                                </span>
+                              </div>
+                              <input
+                                type="range"
+                                min="5"
+                                max="10"
+                                value={notFinalLimit}
+                                onChange={(e) => {
+                                  setNotFinalLimit(e.target.value);
+                                }}
+                                onMouseUp={() => {
+                                  setTopLimit(notFinalLimit);
+                                }}
+                                onTouchEnd={() => {
+                                  setTopLimit(notFinalLimit);
+                                }}
+                                className="w-full"
+                              />
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="mt-6 pt-4 border-t border-white/10 flex justify-end">
                           <button
                             type="button"
-                            className="inline-flex transition-transform hover:scale-105 justify-center rounded-md border outline outline-sky-700 border-sky-200 px-4 py-2 text-sm font-medium text-blue-500 hover:outline-sky-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                            className="px-5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-neutral-200 transition-colors"
                             onClick={() => {
                               setSettings(false);
                             }}
@@ -512,41 +477,36 @@ export default function Home() {
                 )}
               </div>
             </section>
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
           </div>
-        </div>
-      </div>
-      {artistAnalysis && (
-        <div style={{ height: 300, width: 400, color: "black" }}>
-          ee
-          <ResponsivePie
-            data={artistAnalysis["genres"]}
-            margin={{ top: 40, right: 80, bottom: 80, left: 80 }}
-            innerRadius={0.6}
-            activeOuterRadiusOffset={8}
-            colors={{ scheme: "set1" }}
-            borderWidth={3}
-            borderColor={{
-              from: "color",
-              modifiers: [["darker", 1]],
-            }}
-            // enableArcLinkLabels={false}
-            // arcLinkLabelsSkipAngle={11}
-            arcLinkLabelsOffset={-11}
-            arcLinkLabelsTextColor="#d6d1d1"
-            arcLinkLabelsThickness={2}
-            arcLinkLabelsColor={{ from: "color" }}
-            arcLabelsSkipAngle={17}
-            isInteractive={true}
-            arcLabelsTextColor={{
-              from: "color",
-              modifiers: [["darker", 2]],
-            }}
-          />
+          {artistAnalysis && artistAnalysis["genres"] && (
+        <div className="max-w-xl mx-auto my-12 glass-card rounded-3xl p-6 border border-white/10 shadow-2xl">
+          <div className="flex items-center gap-2 mb-4">
+            <h3 className="text-lg font-bold text-neutral-100">Genre Breakdown</h3>
+          </div>
+          <div style={{ height: 320, width: "100%" }}>
+            <ResponsivePie
+              data={artistAnalysis["genres"]}
+              margin={{ top: 30, right: 60, bottom: 60, left: 60 }}
+              innerRadius={0.6}
+              activeOuterRadiusOffset={8}
+              colors={{ scheme: "set1" }}
+              borderWidth={2}
+              borderColor={{
+                from: "color",
+                modifiers: [["darker", 1]],
+              }}
+              arcLinkLabelsOffset={-11}
+              arcLinkLabelsTextColor="#d6d1d1"
+              arcLinkLabelsThickness={2}
+              arcLinkLabelsColor={{ from: "color" }}
+              arcLabelsSkipAngle={17}
+              isInteractive={true}
+              arcLabelsTextColor={{
+                from: "color",
+                modifiers: [["darker", 2]],
+              }}
+            />
+          </div>
         </div>
       )}
       {player && !playerOverride && (
