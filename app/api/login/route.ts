@@ -14,7 +14,7 @@ async function signInWithSpotify() {
   })
 }
 
-export const supabase = createClient(
+const supabase = createClient(
   // @ts-ignore
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -28,7 +28,7 @@ export async function GET(request:any) {
         response_type: 'code',
       client_id: client_id,
       scope: scope,
-      redirect_uri: "http://localhost:3000/api/callback",
+      redirect_uri: "http://127.0.0.1:3000/api/callback",
       state: state
       })
 

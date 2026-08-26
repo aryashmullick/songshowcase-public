@@ -7,8 +7,8 @@ import { useEffect, useState } from "react";
 // @ts-ignore
 export default function TopFifty({ artist, track }) {
   const [info, setInfo] = useState();
-  const [topArtists, setTopArtists] = useState();
-  const [topTracks, setTopTracks] = useState();
+  const [topArtists, setTopArtists] = useState<any>();
+  const [topTracks, setTopTracks] = useState<any>();
 
   useEffect(() => {
     if (artist === undefined && track === undefined) {

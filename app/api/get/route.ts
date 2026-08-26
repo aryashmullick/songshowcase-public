@@ -10,6 +10,7 @@ import UserSession from "@/Models/UserSession";
 const client_id = process.env.SP_CLIENT_ID;
 const client_secret = process.env.SP_CLIENT_SECRET;
 const url = "https://accounts.spotify.com/api/token";
+export const dynamic = "force-dynamic";
 
 async function getInfo(code: string | null) {
   return await fetch("https://api.spotify.com/v1/me", {
@@ -58,19 +59,9 @@ async function getTopTracks(
   });
 }
 
-async function getCurrentTrack(code: string | null) {
-  return await fetch(`https://api.spotify.com/v1/me/player/currently-playing`, {
-    headers: {
-      Authorization: "Bearer " + code,
-    },
-  }).then((response) => {
-    return response.json();
-  });
-}
-
-async function getTrackFeatures(code: string | null, track_ids: string) {
+async function getPlaylists(code: string | null) {
   return await fetch(
-    `https://api.spotify.com/v1/audio-features?ids=${track_ids}`,
+    "https://api.spotify.com/v1/me/playlists?limit=50",
     {
       headers: {
         Authorization: "Bearer " + code,
@@ -79,6 +70,31 @@ async function getTrackFeatures(code: string | null, track_ids: string) {
   ).then((response) => {
     return response.json();
   });
+}
+
+async function getCurrentTrack(code: string | null) {
+  const response = await fetch(`https://api.spotify.com/v1/me/player`, {
+    headers: {
+      Authorization: "Bearer " + code,
+    },
+  });
+  if (response.status === 204) {
+    return null;
+  }
+  return response.json();
+}
+
+async function getTrackFeatures(code: string | null, track_ids: string) {
+  const audio_features = await Promise.all(
+    track_ids.split(",").map((track_id) =>
+      fetch(`https://api.spotify.com/v1/audio-features/${track_id}`, {
+        headers: {
+          Authorization: "Bearer " + code,
+        },
+      }).then((response) => response.json()),
+    ),
+  );
+  return { audio_features };
 }
 
 export async function GET(req: NextRequest, res: NextResponse) {
@@ -120,7 +136,7 @@ export async function GET(req: NextRequest, res: NextResponse) {
 
   //@ts-ignore
   if (now - updateTime > ONE_HOUR) {
-    const refresh = await fetch("http://localhost:3000/api/refresh/", {
+    const refresh = await fetch("http://127.0.0.1:3000/api/refresh/", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -156,7 +172,7 @@ export async function GET(req: NextRequest, res: NextResponse) {
       );
 
       if (analyze === "true") {
-        let genres = {};
+        let genres: { [genre: string]: number } = {};
         let totalGenres = 0;
         topArtists["items"].map((item: { [x: string]: any[] }) => {
           console.log(item["genres"]);
@@ -197,7 +213,7 @@ export async function GET(req: NextRequest, res: NextResponse) {
       );
       if (analyze == "true") {
         let track_ids = "";
-        topTracks["items"].map((i) => {
+        topTracks["items"].map((i: any) => {
           track_ids = track_ids + i["id"] + ",";
         });
         track_ids = track_ids.slice(0, -1);
@@ -210,7 +226,7 @@ export async function GET(req: NextRequest, res: NextResponse) {
         let liveness = 0;
         let loudness = 0;
         let valence = 0;
-        trackAnalysis["audio_features"].map((f) => {
+        trackAnalysis["audio_features"].map((f: any) => {
           tempo += f["tempo"];
           danceability += f["danceability"];
           liveness += f["liveness"];
@@ -234,6 +250,9 @@ export async function GET(req: NextRequest, res: NextResponse) {
         });
       }
       return NextResponse.json({ tracks: topTracks });
+    case "playlists":
+      let playlists = await getPlaylists(user["sp_access_token"]);
+      return NextResponse.json(playlists);
     case "player":
       let player = await getCurrentTrack(user["sp_access_token"]);
       return NextResponse.json(player);

@@ -12,6 +12,7 @@ import  UserInfo  from "@/Models/UserInfo";
 const client_id = process.env.SP_CLIENT_ID
 const client_secret = process.env.SP_CLIENT_SECRET
 const url = "https://accounts.spotify.com/api/token"
+export const dynamic = "force-dynamic"
 async function getData(code:string | null){
   return await fetch(url,
     {
@@ -19,7 +20,7 @@ async function getData(code:string | null){
         // @ts-ignore
         body: querystring.stringify({
           code: code,
-          redirect_uri: "http://localhost:3000/api/callback",
+          redirect_uri: "http://127.0.0.1:3000/api/callback",
           grant_type: 'authorization_code',
         }),
         headers: {

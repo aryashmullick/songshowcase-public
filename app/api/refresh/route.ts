@@ -9,6 +9,7 @@ const client_id = process.env.SP_CLIENT_ID
 const client_secret = process.env.SP_CLIENT_SECRET
 
 const url = "https://accounts.spotify.com/api/token"
+export const dynamic = "force-dynamic"
 async function getToken(refresh_token:string | null){
     const payload = {
         method: 'POST',

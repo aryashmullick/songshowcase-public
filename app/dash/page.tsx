@@ -71,7 +71,7 @@ export default function Home() {
           }
         })
         .then((data) => {
-          if (data !== undefined) {
+          if (data !== undefined && data !== null && data["item"] !== null) {
             if (
               player !== undefined &&
               player["item"]["name"] !== data["item"]["name"] &&
