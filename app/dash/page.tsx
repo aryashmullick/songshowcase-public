@@ -1,6 +1,5 @@
 "use client";
-import { useCookies } from "react-cookie";
-import { redirect } from "next/navigation";
+import { apiFetch } from '@/app/lib/client-api';
 import Image from "next/image";
 import Link from "next/link";
 import React, {
@@ -13,18 +12,12 @@ import React, {
 } from "react";
 // import { cookies } from 'next/headers'
 import { Transition, Menu, Dialog } from "@headlessui/react";
-import localFont from "next/font/local";
 // @ts-ignore
 
 import "react-circular-progressbar/dist/styles.css";
 import Player from "@/Components/player";
 import dynamic from "next/dynamic";
 // import WavesSVG from "@/public/layered-waves-haikei (1).svg"
-const blanka = localFont({
-  src: "../../public/Blanka.otf",
-  display: "swap",
-  variable: "--font-blanka",
-});
 // import { ResponsivePie, ResponsivePieCanvas } from "@nivo/pie";
 const ResponsivePie = dynamic(
   () => import("@nivo/pie").then((mod) => mod.ResponsivePie),
@@ -32,12 +25,11 @@ const ResponsivePie = dynamic(
 );
 
 export default function Home() {
-  // const cookie:any = useCookies(["access_token"]);
+  const [error, setError] = useState('');
   const [info, setInfo]: any = useState();
   const [topArtists, setTopArtists]: any = useState();
   const [topTracks, setTopTracks]: any = useState();
   const [infoOpen, setInfoOpen]: any = useState(false);
-  const [cookie, setCookie]: any = useCookies(["access_token"]);
   const [player, setPlayer]: any = useState();
   const [playerDurationPercent, setPlayerDurationPercent]: any = useState(0);
   const [playerOpen, setPlayerOpen]: any = useState(false);
@@ -60,7 +52,7 @@ export default function Home() {
     playerOpenOnChange: boolean,
   ) => {
     if (!playerOverride) {
-      fetch("/api/get?get=player", {
+      apiFetch("/api/get?get=player", {
         cache: "no-cache",
       })
         .then((res) => {
@@ -71,10 +63,10 @@ export default function Home() {
           }
         })
         .then((data) => {
-          if (data !== undefined && data !== null && data["item"] !== null) {
+          if (data?.item?.type === 'track') {
             if (
               player !== undefined &&
-              player["item"]["name"] !== data["item"]["name"] &&
+              player?.item?.name !== data["item"]["name"] &&
               playerOpenOnChange
             ) {
               setPlayerOpen(true);
@@ -86,8 +78,8 @@ export default function Home() {
             setPlayerDurationPercent(
               (data["progress_ms"] / data["item"]["duration_ms"]) * 100,
             );
-          }
-        });
+          } else { setPlayer(null); }
+        }).catch((error: Error) => setError(error.message));
     }
   };
 
@@ -96,19 +88,19 @@ export default function Home() {
       currentPlayer(player, playerOverride, playerOpenOnChange);
     }, 5000);
     return () => clearInterval(interval);
-  }, [cookie, player, playerOverride, playerOpenOnChange]);
+  }, [player, playerOverride, playerOpenOnChange]);
   {
   }
 
   useEffect(() => {
-    fetch("/api/get?get=info", {
+    apiFetch("/api/get?get=info", {
       // cache: "force-cache",
     })
       .then((res) => res.json())
       .then((data) => {
         setInfo(data);
-      });
-    fetch(
+      }).catch((error: Error) => setError(error.message));
+    apiFetch(
       `/api/get?get=topTracks&limit=${topLimit}&time_range=${term}&analyze=true`,
       {
         // cache: "force-cache",
@@ -121,8 +113,8 @@ export default function Home() {
         setTopTracks(data["tracks"]);
         delete data["tracks"];
         setTrackAnalysis(data);
-      });
-    fetch(
+      }).catch((error: Error) => setError(error.message));
+    apiFetch(
       `/api/get?get=topArtists&limit=${topLimit}&time_range=${term}&analyze=true`,
       {
         // cache: "force-cache",
@@ -136,16 +128,17 @@ export default function Home() {
         setTopArtists(data["artists"]);
         delete data["artists"];
         setArtistAnalysis(data);
-      });
+      }).catch((error: Error) => setError(error.message));
     currentPlayer(undefined, playerOverride, playerOpenOnChange);
-  }, [term, topLimit]);
+  }, [term, topLimit, playerOverride, playerOpenOnChange]);
 
   return (
     <main className="overflow-hidden">
+      {error && <p role="alert" className="p-4 text-amber-300">{error}</p>}
       <div className="select-none">
         <div className="pt-6 pb-2 px-4 flex items-center justify-between max-w-6xl mx-auto">
               <div className="flex items-center gap-3">
-                {info ? (
+                {info?.images?.[0]?.url ? (
                   <div className="relative w-11 h-11 rounded-full p-0.5 bg-gradient-to-tr from-green-500 to-emerald-400 shadow-md shadow-green-500/20">
                     <Image
                       src={info["images"][0]["url"]}
@@ -221,12 +214,12 @@ export default function Home() {
                             Settings
                           </Dialog.Title>
                           {info && (
-                            <Link
-                              href="/api/login"
+                            <form action="/api/logout" method="post"><button
+                              type="submit"
                               className="text-xs px-2.5 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 font-medium transition-colors"
                             >
                               Logout
-                            </Link>
+                            </button></form>
                           )}
                         </div>
 
@@ -354,7 +347,7 @@ export default function Home() {
                             style={{ lineHeight: 1, fontSize: "7.3rem" }}
                             className={`font-extrabold text-left absolute w-full opacity-70 object-contain select-none blur-[0.px]  hover:blur-0 bg-clip-text text-transparent bg-gradient-to-r from-green-500 to-violet-500`}
                           >
-                            <p className={blanka.className}>{i + 1}</p>
+                            <p className="font-mono">{i + 1}</p>
                           </div>
                           <div
                             className={`text-green-600 absolute inset-0 ${
@@ -436,7 +429,7 @@ export default function Home() {
                           <div
                             className={`font-extrabold text-left absolute w-full text-9xl opacity-70 object-contain select-none blur-[0.px]  hover:blur-0 bg-clip-text text-transparent bg-gradient-to-r from-sky-700 to-violet-700`}
                           >
-                            <p className={blanka.className}>{i + 1}</p>
+                            <p className="font-mono">{i + 1}</p>
                           </div>
                           <div
                             className={`text-green-600 absolute inset-0 ${

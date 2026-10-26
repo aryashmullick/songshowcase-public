@@ -1,30 +1,30 @@
 
-'use client'
 import SideBar from '@/Components/sidebar'
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
-import Link from 'next/link'
 import { Suspense } from 'react'
 import Loading from './loading'
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
+import { readSession } from '@/app/lib/backend'
 
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
 
+  const cookie = await cookies();
+  let session = null;
+  try { session = await readSession(cookie.get('session_id')?.value); } catch {
+    return <main className="p-8">The session service is unavailable. Please try again later.</main>;
+  }
+  if (!session) redirect('/');
   return (
-    <html lang="en">
-      <body className={""}>
-        {/* hidden  md:max-2xl:grid  */}
       <div className="grid grid-flow-col grid-cols-8 overflow-hidden">
         <SideBar />
       <div className={"overflow-y-auto h-screen col-span-6 rounded-2xl "}>
         <Suspense fallback={<Loading />}>{children}</Suspense>
       </div>
       </div>
-        </body>
-    </html>
   )
 }

@@ -26,7 +26,28 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
-.env*.local
+.env
+.env.*
+!.env.example
+.idea/
+.vscode/
+.release-work/
+*.log
+*.dump
+*.sql
+*.sqlite*
+*.bson
+*.archive
+*.zip
+*.key
+*.p12
+*.pfx
+.npmrc
+.aws/
+data/
+logs/
+backups/
+reports/
 
 # vercel
 .vercel

@@ -1,50 +1,38 @@
 "use client";
-import { redirect } from "next/navigation";
+import { apiFetch } from '@/app/lib/client-api';
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-// @ts-ignore
-export default function TopFifty({ artist, track }) {
-  const [info, setInfo] = useState();
+export default function TopFifty({ artist, track }: { artist: boolean; track: boolean }) {
+  const [error, setError] = useState('');
   const [topArtists, setTopArtists] = useState<any>();
   const [topTracks, setTopTracks] = useState<any>();
 
   useEffect(() => {
-    if (artist === undefined && track === undefined) {
-      redirect("/");
-    }
-
-    fetch("/api/get?get=info", {
-      // cache: "force-cache",
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setInfo(data);
-      });
-
-    if (artist !== undefined) {
-      fetch("/api/get?get=topArtists&limit=50&time_range=short_term", {
+    if (artist) {
+      apiFetch("/api/get?get=topArtists&limit=50&time_range=short_term", {
         // cache: "force-cache",
       })
         .then((res) => res.json())
         .then((data) => {
           setTopArtists(data["artists"]);
-        });
+        }).catch((error: Error) => setError(error.message));
     }
 
-    if (track !== undefined) {
-      fetch("/api/get?get=topTracks&limit=50&time_range=short_term", {
+    if (track) {
+      apiFetch("/api/get?get=topTracks&limit=50&time_range=short_term", {
         // cache: "force-cache",
       })
         .then((res) => res.json())
         .then((data) => {
           setTopTracks(data["tracks"]);
-        });
+        }).catch((error: Error) => setError(error.message));
     }
   }, [artist, track]);
   return (
     <main className="p-6 md:p-8 max-w-6xl mx-auto space-y-6">
+      {error && <p role="alert" className="text-amber-300">{error}</p>}
       <div className="glass-card rounded-3xl p-6 sm:p-8 border border-white/10 relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="absolute top-0 right-0 w-64 h-64 bg-green-500/10 rounded-full blur-3xl pointer-events-none" />
         <div>

@@ -1,37 +1,19 @@
-import { NextResponse } from "next/server";
-import {redirect} from "next/navigation";
-import * as querystring from "querystring";
+import { NextRequest, NextResponse } from 'next/server';
+import { apiError, cookieOptions, newToken, privateResponse, spotifyConfig, STATE_SECONDS } from '@/app/lib/backend';
 
-const client_id = process.env.SP_CLIENT_ID
-const client_secret = process.env.SP_CLIENT_SECRET
-const url = "https://accounts.spotify.com/authorize?"
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
-import { createClient } from '@supabase/supabase-js'
-
-async function signInWithSpotify() {
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'spotify',
-  })
+export async function GET(_request: NextRequest) {
+  try {
+    const config = spotifyConfig();
+    const state = newToken();
+    const url = new URL('https://accounts.spotify.com/authorize');
+    url.search = new URLSearchParams({ response_type: 'code', client_id: config.clientId,
+      scope: 'user-read-playback-state user-top-read playlist-read-private playlist-read-collaborative',
+      redirect_uri: config.redirectUri, state }).toString();
+    const response = NextResponse.redirect(url, 303);
+    response.cookies.set('oauth_state', state, cookieOptions(STATE_SECONDS));
+    return privateResponse(response);
+  } catch (error) { return apiError(error); }
 }
-
-const supabase = createClient(
-  // @ts-ignore
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-)
-
-export async function GET(request:any) {
-  let state = (Math.random() * 10000) + 1000
-  let scope = "user-read-playback-state user-read-currently-playing playlist-read-private playlist-read-collaborative user-follow-read user-read-playback-position user-top-read user-read-recently-played user-library-read"
-  let finalURL = url +
-      querystring.stringify({
-        response_type: 'code',
-      client_id: client_id,
-      scope: scope,
-      redirect_uri: "http://127.0.0.1:3000/api/callback",
-      state: state
-      })
-
-  return redirect(finalURL)
-}
-

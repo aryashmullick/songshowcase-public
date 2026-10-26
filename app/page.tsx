@@ -1,20 +1,14 @@
-'use client';
-import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { useEffect } from "react";
-import { useCookies } from "react-cookie";
+import { cookies } from 'next/headers';
+import { readSession } from '@/app/lib/backend';
 
 
-export default function Home() {
-
-  const [cookie,setCookie] = useCookies(["session_id","sp_id"])
-
-  useEffect(()=>{
-    if (cookie.session_id!==undefined && cookie.sp_id!==undefined){
-      redirect("/dash")
-    }
-  },[cookie])
+export default async function Home() {
+  const cookie = await cookies();
+  let session = null;
+  try { session = await readSession(cookie.get('session_id')?.value); } catch { /* The login page remains available during a DB outage. */ }
+  if (session) redirect('/dash');
 
   return (
     <main className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
