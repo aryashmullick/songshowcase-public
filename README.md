@@ -17,6 +17,22 @@ This repository preserves the project's development history with private configu
 
 The screenshot is the locally built sign-in page.
 
+## Screenshots
+
+AI tools were used to blur playlist names in the screenshots for privacy. The edited images were also resized.
+
+### Dashboard
+
+![SongShowcase dashboard with playlist names blurred](docs/images/dashboard-blurred.png)
+
+### Top tracks
+
+![SongShowcase top tracks with playlist names blurred](docs/images/top-tracks-blurred.png)
+
+### Playback widget
+
+![SongShowcase playback widget with the clipped playlist name blurred](docs/images/player-blurred.png)
+
 ## Architecture and request flow
 
 ```mermaid
