@@ -1,3 +1,12 @@
+# Note
+I made this project back in 2023, when I was just exploring the spotify API, NextJS and MongoDB. This project was purely made to gain knowledge along the way, and I had no intention to make it public or ship it.
+
+This project was made with minimal use of AI in 2023, and the AI was majorly used quite recently in 2026 to:
+- Sanitize the original private repository
+- Update this project to follow Spotify's new API changes and fix other features which broke over the years.
+
+Feel free to browse around and see what I was up to back then!
+
 # SongShowcase
 
 A Spotify listening dashboard built with Next.js, TypeScript, React, and MongoDB. It shows a signed-in listener's top artists and tracks across Spotify's time ranges, genre distribution, the first 50 playlists, and current playback. The playback widget displays status; it does not control playback.
@@ -6,7 +15,7 @@ This repository preserves the project's development history with private configu
 
 ![SongShowcase sign-in page](docs/images/login.png)
 
-The screenshot is the locally built sign-in page. It contains no account data; an authenticated dashboard has not been captured or verified against live Spotify for this release.
+The screenshot is the locally built sign-in page.
 
 ## Architecture and request flow
 
@@ -16,19 +25,27 @@ sequenceDiagram
     participant N as Next.js Node backend
     participant S as Spotify
     participant M as MongoDB
+
     B->>N: GET /api/login
-    N-->>B: State cookie + Spotify consent redirect
+    N-->>B: Set state cookie and redirect to Spotify
     B->>S: Authorize requested scopes
-    S-->>B: Authorization code + state
+    S-->>B: Return authorization code and state
     B->>N: GET /api/callback
     N->>N: Validate state against cookie
-    N->>S: Exchange code, then fetch profile
-    N->>M: Upsert minimal profile; create session with tokens
-    N-->>B: Opaque session cookie; redirect /dash
+    N->>S: Exchange code for tokens
+    N->>S: Fetch Spotify profile
+    N->>M: Upsert minimal profile and create session
+    N-->>B: Set opaque session cookie and redirect to /dash
     B->>N: GET /api/get?get=topArtists
     N->>M: Look up hashed session and check expiry
-    N->>S: Refresh if needed; request resource
-    N-->>B: JSON without Spotify tokens
+    opt Access token needs refresh
+        N->>S: Exchange refresh token
+        S-->>N: Return updated tokens
+        N->>M: Persist updated tokens and expiry
+    end
+    N->>S: Request top artists
+    S-->>N: Return artist data
+    N-->>B: Return JSON without Spotify tokens
 ```
 
 - `app/api/`: OAuth login/callback, protected Spotify queries, explicit refresh, and logout. OAuth uses the server-side authorization code flow with a client secret. State is random, bound to an HttpOnly cookie, and cleared on callback.
@@ -74,14 +91,6 @@ gitleaks git --redact=100 --log-opts="--all --full-history" .
 ```
 
 `npm test`, `npm run lint`, `npm run typecheck`, and `npm run build` can also run separately. The mock suite calls real route handlers with substituted Spotify responses and MongoDB operations; it covers state/cookies, invalid sessions, refresh rotation and failure, upstream errors, request validation, and logout. It makes no live Spotify or database requests. Smoke checks cover the login page, dashboard redirects, unauthenticated APIs, rejected callbacks, redirect configuration, and logout. See [the release review](docs/RELEASE_REVIEW.md) for audit scope and operational follow-up. CI repeats build/test/audit and history scanning; its hosted result must be checked separately.
-
-## Known limitations
-
-- Live OAuth consent, account eligibility, Spotify endpoint access, real MongoDB connectivity/TTL creation, and HTTPS deployment cookies remain unverified in this release. Fresh deployment sessions are required because session storage changed.
-- Spotify restricts [Audio Features access](https://developer.spotify.com/blog/2024-11-27-changes-to-the-web-api). Treat the optional analysis as access-dependent; the top-track list still works when feature access is denied. Playlist pagination beyond 50 is not implemented. Recommendations and playback controls are not implemented in this release.
-- Tokens are stored without application-level encryption in MongoDB. Secure the database and hosting environment before deployment. Refresh coordination is process-local; distributed locking and application-level rate limiting are not implemented.
-- Logout removes the current session, not stored profiles or every other session. Account-data deletion has no UI. The interface assumes Spotify-shaped data and has not had a full accessibility or cross-device review.
-- The old callback logged token responses. Rotate the old Spotify client secret and revoke old app grants if those logs may have been retained or shared. Review the old database credential before reusing it. Git cleanup does not revoke credentials. Keep access logs from recording callback query strings, cookies, or authorization headers.
 
 ## Attribution, licensing, and updates
 
